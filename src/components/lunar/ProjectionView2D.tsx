@@ -54,6 +54,10 @@ export default function ProjectionView2D({
         isMini={isMini}
       />
 
+<<<<<<< HEAD
+=======
+      {/* Map Legend Overlay - Bottom Right */}
+>>>>>>> 9de26753331600944d26894b8722a60e8f4ff85e
       {!isMini && (
         <div className="absolute bottom-6 right-6 z-[1000] pointer-events-none">
           <div className="bg-black/70 backdrop-blur-md border border-white/10 p-3 shadow-2xl flex flex-col items-end gap-1.5 rounded">

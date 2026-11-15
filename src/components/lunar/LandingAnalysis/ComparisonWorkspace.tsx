@@ -25,6 +25,18 @@ export default function ComparisonWorkspace({ evaluationPoints, onRemovePoint, o
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'grid' | 'table'>('grid');
 
+<<<<<<< HEAD
+=======
+  const layers: MapLayersConfig = {
+    labels: { id: 'labels', active: true, opacity: 0.8, loading: false, source: '', version: '', category: 'lgrs', blendMode: 'normal' },
+    missions: { id: 'missions', active: true, opacity: 1, loading: false, source: '', version: '', category: 'imagery', blendMode: 'normal' },
+    relief: { id: 'relief', active: true, opacity: 0.4, loading: false, source: '', version: '', category: 'topography', blendMode: 'normal' },
+    illumination: { id: 'illumination', active: true, opacity: 0.6, loading: false, source: '', version: '', category: 'illumination', blendMode: 'normal' },
+    psr: { id: 'psr', active: true, opacity: 0.6, loading: false, source: '', version: '', category: 'illumination', blendMode: 'normal' },
+    daynight: { id: 'daynight', active: false, opacity: 0.3, loading: false, source: '', version: '', category: 'illumination', blendMode: 'normal' },
+  };
+
+>>>>>>> 9de26753331600944d26894b8722a60e8f4ff85e
   return (
     <div className="absolute right-6 top-24 bottom-24 w-[520px] z-[2000] bg-[#0a0a0c]/95 backdrop-blur-2xl border border-white/10 shadow-[0_0_40px_rgba(0,0,0,0.8)] flex flex-col animate-in slide-in-from-right-10 duration-500 rounded-md overflow-hidden font-mono">
       {/* Technical Header */}
@@ -65,6 +77,7 @@ export default function ComparisonWorkspace({ evaluationPoints, onRemovePoint, o
         </button>
       </div>
 
+<<<<<<< HEAD
       <ScrollArea className="flex-1">
         <div className="p-6 space-y-16">
           {evaluationPoints.length === 0 ? (
@@ -95,6 +108,26 @@ export default function ComparisonWorkspace({ evaluationPoints, onRemovePoint, o
           )}
         </div>
       </ScrollArea>
+=======
+        <main className="flex-1 flex flex-col bg-black relative">
+          <div className="h-1/2 border-b border-white/10 relative">
+             <ProjectionView2D 
+                mode="south_pole"
+                features={[]}
+                evaluationPoints={evaluationPoints}
+                selectedFeatureId={highlightedId}
+                onSelectFeature={setHighlightedId}
+                layers={layers}
+             />
+             <div className="absolute top-6 right-6 p-4 bg-black/60 backdrop-blur-md border border-white/10 rounded flex items-center gap-4">
+                <Target className="w-10 h-10 text-blue-400" />
+                <div className="space-y-0.5">
+                   <h4 className="text-[10px] font-bold uppercase tracking-widest text-blue-400">Coordinated Observer</h4>
+                   <p className="text-[8px] text-white uppercase tracking-widest">South Polar Stereographic · Epoch: J2000</p>
+                </div>
+             </div>
+          </div>
+>>>>>>> 9de26753331600944d26894b8722a60e8f4ff85e
 
       {/* Technical Footer */}
       <div className="px-6 py-4 bg-black/60 border-t border-white/10 flex items-center justify-between text-[8px] uppercase tracking-[0.2em] font-bold">

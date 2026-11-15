@@ -25,6 +25,10 @@ export default function MapInterface() {
   const [isWorkspaceOpen, setIsWorkspaceOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   
+<<<<<<< HEAD
+=======
+  // Simulation State
+>>>>>>> 9de26753331600944d26894b8722a60e8f4ff85e
   const [simTime, setSimTime] = useState(0);
   const [simSpeed, setSimSpeed] = useState(1);
   const [isSimActive, setIsSimActive] = useState(true);
@@ -37,10 +41,43 @@ export default function MapInterface() {
 
   const [layers, setLayers] = useState<MapLayersConfig>(() => {
     const initialState: MapLayersConfig = {
+<<<<<<< HEAD
       lgrs: { id: 'lgrs', active: true, opacity: 0.4, loading: false, version: 'V2.1', source: 'USGS', category: 'lgrs', blendMode: 'normal' },
       missions: { id: 'missions', active: true, opacity: 1, loading: false, version: 'V1.0', source: 'NAVLUNAR', category: 'imagery', blendMode: 'normal' },
       daynight: { id: 'daynight', active: true, opacity: 0.6, loading: false, version: 'Eph V1', source: 'Engine', category: 'illumination', blendMode: 'screen' },
       suitability: { id: 'suitability', active: false, opacity: 0.8, loading: false, version: 'V1.0', source: 'NavLunar Analysis', category: 'illumination', blendMode: 'normal' }
+=======
+      lgrs: {
+        id: 'lgrs',
+        active: true,
+        opacity: 0.4,
+        loading: false,
+        version: 'V2.1',
+        source: 'USGS/McClernan',
+        category: 'lgrs',
+        blendMode: 'normal'
+      },
+      missions: {
+        id: 'missions',
+        active: true,
+        opacity: 1,
+        loading: false,
+        version: 'V1.0',
+        source: 'NAVLUNAR Archive',
+        category: 'imagery',
+        blendMode: 'normal'
+      },
+      daynight: {
+        id: 'daynight',
+        active: true,
+        opacity: 0.6,
+        loading: false,
+        version: 'Ephemeris V1',
+        source: 'NAVLUNAR Engine',
+        category: 'illumination',
+        blendMode: 'screen'
+      }
+>>>>>>> 9de26753331600944d26894b8722a60e8f4ff85e
     };
     Object.values(NASA_TREK_LAYERS).forEach(layer => {
       initialState[layer.id] = {
@@ -74,11 +111,44 @@ export default function MapInterface() {
     return null;
   }, [selectedFeatureId, inspectedPoint]);
 
+<<<<<<< HEAD
+=======
+  // Automatic Projection Switching Logic
+  const handleRegionChange = useCallback((lat: number, lng: number) => {
+    if (viewMode === 'quad') return; 
+    
+    let targetMode: MapViewMode = viewMode;
+    if (lat > 60) targetMode = 'north_pole';
+    else if (lat < -60) targetMode = 'south_pole';
+    else targetMode = 'central';
+
+    if (targetMode !== viewMode && viewMode !== 'globe' && viewMode !== 'quad') {
+      setViewMode(targetMode);
+    }
+  }, [viewMode]);
+
+  const toggleLayer = (id: string) => {
+    setLayers(prev => ({ 
+      ...prev, 
+      [id]: { ...prev[id], active: !prev[id].active } 
+    }));
+  };
+
+  const setLayerOpacity = (id: string, val: number) => {
+    setLayers(prev => ({ 
+      ...prev, 
+      [id]: { ...prev[id], opacity: val } 
+    }));
+  };
+
+>>>>>>> 9de26753331600944d26894b8722a60e8f4ff85e
   const handleInspect = (lat: number, lng: number, telemetry: CelestialPositions) => {
     setInspectedPoint({ lat, lng, telemetry });
     setSelectedFeatureId(null);
+    handleRegionChange(lat, lng);
   };
 
+<<<<<<< HEAD
   const handleAddEvalPoint = (point: Omit<EvaluationPoint, 'id' | 'color'>) => {
     if (evaluationPoints.length >= 4) return;
     const newPoint: EvaluationPoint = {
@@ -87,6 +157,18 @@ export default function MapInterface() {
       color: EVAL_COLORS[evaluationPoints.length]
     };
     setEvaluationPoints(prev => [...prev, newPoint]);
+=======
+  const handle2DInspect = (lat: number, lng: number) => {
+    const telemetry = calculateLunarEphemeris(simTime || Date.now());
+    handleInspect(lat, lng, telemetry);
+  };
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 50);
+>>>>>>> 9de26753331600944d26894b8722a60e8f4ff85e
   };
 
   return (
@@ -103,16 +185,38 @@ export default function MapInterface() {
         </div>
 
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+<<<<<<< HEAD
           <Image src="/logo/datanauts-logo.png" alt="Datanauts" width={400} height={120} className="h-16 w-auto object-contain" priority />
+=======
+          <Image 
+            src="/logo/datanauts-logo.png" 
+            alt="Datanauts Logo" 
+            width={400} 
+            height={120} 
+            className="h-16 w-auto object-contain"
+            priority
+          />
+>>>>>>> 9de26753331600944d26894b8722a60e8f4ff85e
         </div>
 
         <div className="flex-1 flex items-center justify-end gap-6">
           <div className="flex items-center gap-4">
             <div className="relative w-48">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/20" />
+<<<<<<< HEAD
               <Input placeholder="search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="bg-white/5 border-white/10 pl-8 h-9 text-[10px] tracking-widest rounded-none" />
             </div>
             <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 border border-white/10 hover:bg-white/5 transition-all">
+=======
+              <Input 
+                placeholder="search" 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="bg-white/5 border-white/10 pl-8 h-9 text-[10px] tracking-widest rounded-none"
+              />
+            </div>
+            <button onClick={toggleSidebar} className="p-2 border border-white/10 hover:bg-white/5 transition-all">
+>>>>>>> 9de26753331600944d26894b8722a60e8f4ff85e
               <Menu className="w-4 h-4" />
             </button>
           </div>
@@ -123,11 +227,32 @@ export default function MapInterface() {
         {isSidebarOpen && (
           <aside className="w-80 border-r border-white/10 bg-[#0a0a0a] flex flex-col divide-y divide-white/10 z-20">
             <div className="p-4 h-1/2 overflow-y-auto">
+<<<<<<< HEAD
               <h3 className="text-[9px] uppercase tracking-[0.3em] text-white/30 mb-4">LAYERS</h3>
               <LayerPanel layers={layers} onToggle={(id: string) => setLayers(prev => ({...prev, [id]: {...prev[id], active: !prev[id].active}}))} onOpacityChange={(id: string, val: number) => setLayers(prev => ({...prev, [id]: {...prev[id], opacity: val}}))} />
             </div>
             <div className="p-4 flex-1 overflow-y-auto bg-black/40">
               <InfoPanel feature={MASTER_CATALOG.find(f => f.id === selectedFeatureId) || null} inspectedPoint={inspectedPoint} simTime={simTime} onAddPoint={handleAddEvalPoint} evaluationPoints={evaluationPoints} onRemovePoint={(id) => setEvaluationPoints(prev => prev.filter(p => p.id !== id))} onOpenWorkspace={() => setIsWorkspaceOpen(true)} />
+=======
+              <h3 className="text-[9px] uppercase tracking-[0.3em] text-white/30 mb-4 flex items-center gap-2">
+                <Layers className="w-3 h-3" /> LAYERS
+              </h3>
+              <LayerPanel 
+                layers={layers} 
+                onToggle={toggleLayer} 
+                onOpacityChange={setLayerOpacity} 
+              />
+            </div>
+            <div className="p-4 flex-1 overflow-y-auto bg-black/40">
+              <InfoPanel 
+                feature={MASTER_CATALOG.find(f => f.id === selectedFeatureId) || null} 
+                inspectedPoint={inspectedPoint}
+                simTime={simTime} 
+                onAddPoint={(p) => setEvaluationPoints(prev => [...prev, { ...p, id: Math.random().toString(), color: '#3b82f6' }])} 
+                evaluationPoints={evaluationPoints} 
+                onRemovePoint={(id) => setEvaluationPoints(prev => prev.filter(p => p.id !== id))} 
+              />
+>>>>>>> 9de26753331600944d26894b8722a60e8f4ff85e
             </div>
           </aside>
         )}
@@ -150,7 +275,21 @@ export default function MapInterface() {
           ) : viewMode === 'globe' ? (
             <GlobeView features={filteredFeatures} selectedFeatureId={selectedFeatureId} onSelectFeature={setSelectedFeatureId} layers={layers} evaluationPoints={evaluationPoints} onInspectPoint={handleInspect} simTime={simTime} onSimTimeChange={setSimTime} simSpeed={simSpeed} onSimSpeedChange={setSimSpeed} isSimActive={isSimActive} onToggleSim={() => setIsSimActive(!isSimActive)} />
           ) : (
+<<<<<<< HEAD
             <ProjectionView2D mode={viewMode} features={filteredFeatures} selectedFeatureId={selectedFeatureId} onSelectFeature={setSelectedFeatureId} layers={layers} evaluationPoints={evaluationPoints} simTime={simTime} onInspectPoint={(lat, lng) => handleInspect(lat, lng, calculateLunarEphemeris(simTime))} />
+=======
+            <ProjectionView2D 
+              key={`single-${viewMode}`} 
+              mode={viewMode} 
+              features={filteredFeatures} 
+              selectedFeatureId={selectedFeatureId} 
+              onSelectFeature={setSelectedFeatureId} 
+              layers={layers} 
+              simTime={simTime} 
+              evaluationPoints={evaluationPoints} 
+              onInspectPoint={handle2DInspect} 
+            />
+>>>>>>> 9de26753331600944d26894b8722a60e8f4ff85e
           )}
 
           {isWorkspaceOpen && <ComparisonWorkspace evaluationPoints={evaluationPoints} onRemovePoint={(id) => setEvaluationPoints(prev => prev.filter(p => p.id !== id))} onClose={() => setIsWorkspaceOpen(false)} />}

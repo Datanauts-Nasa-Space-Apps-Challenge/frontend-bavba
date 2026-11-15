@@ -4,7 +4,11 @@ import { useRef, useEffect, useMemo, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+<<<<<<< HEAD
 import { LunarFeature, MapLayersConfig, EvaluationPoint } from '@/types/lunar';
+=======
+import { LunarFeature, MapLayersConfig } from '@/types/lunar';
+>>>>>>> 9de26753331600944d26894b8722a60e8f4ff85e
 import { cartesianToGeodetic, geodeticToCartesian } from '@/lib/lunar-engine';
 import { RotateCcw, ZoomIn, ZoomOut, Sun, Orbit } from 'lucide-react';
 import { useGlobeTexture } from '@/hooks/use-globe-texture';
@@ -55,7 +59,10 @@ export default function GlobeView({
   const inspectorMarkerRef = useRef<THREE.Group | null>(null);
   const lgrsGroupRef = useRef<THREE.Group | null>(null);
   const featuresGroupRef = useRef<THREE.Group | null>(null);
+<<<<<<< HEAD
   const evalGroupRef = useRef<THREE.Group | null>(null);
+=======
+>>>>>>> 9de26753331600944d26894b8722a60e8f4ff85e
 
   const [cameraFocus, setCameraFocus] = useState<{ lat: number; lng: number; distance: number }>({
     lat: 0,
@@ -110,6 +117,12 @@ export default function GlobeView({
 
     const sunLight = new THREE.DirectionalLight(0xffffff, 4.0);
     sunLight.position.set(60, 40, 60);
+<<<<<<< HEAD
+=======
+    sunLight.castShadow = true;
+    sunLight.shadow.mapSize.width = 1024;
+    sunLight.shadow.mapSize.height = 1024;
+>>>>>>> 9de26753331600944d26894b8722a60e8f4ff85e
     scene.add(sunLight);
     sunLightRef.current = sunLight;
 
@@ -150,10 +163,13 @@ export default function GlobeView({
     scene.add(featuresGroup);
     featuresGroupRef.current = featuresGroup;
 
+<<<<<<< HEAD
     const evalGroup = new THREE.Group();
     scene.add(evalGroup);
     evalGroupRef.current = evalGroup;
 
+=======
+>>>>>>> 9de26753331600944d26894b8722a60e8f4ff85e
     const material = new THREE.MeshStandardMaterial({ roughness: 0.95, metalness: 0, color: 0xffffff });
     const proxySphereGeom = new THREE.SphereGeometry(globeRadius, 32, 32);
     const proxySphere = new THREE.Mesh(proxySphereGeom, new THREE.MeshBasicMaterial({ visible: false }));
@@ -167,6 +183,7 @@ export default function GlobeView({
     scene.add(moon);
 
     const loader = new GLTFLoader();
+<<<<<<< HEAD
     loader.load('/models/Moon_NASA_LRO_8k_Topo.glb', (gltf) => {
       const model = gltf.scene;
       model.traverse((child) => {
@@ -178,6 +195,26 @@ export default function GlobeView({
       scene.remove(moon);
       scene.add(model);
     }, undefined, () => console.warn('Fallback sphere.'));
+=======
+    loader.load(
+      '/models/Moon_NASA_LRO_8k_Topo.glb',
+      (gltf) => {
+        const model = gltf.scene;
+        model.traverse((child) => {
+          if (child instanceof THREE.Mesh) {
+            child.receiveShadow = true;
+            child.castShadow = true;
+            child.material = material;
+            moonMeshRef.current = child;
+          }
+        });
+        scene.remove(moon);
+        scene.add(model);
+      },
+      undefined,
+      () => console.warn('Fallback to sphere.')
+    );
+>>>>>>> 9de26753331600944d26894b8722a60e8f4ff85e
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
@@ -197,6 +234,10 @@ export default function GlobeView({
 
       raycaster.setFromCamera(mouse, camera);
       
+<<<<<<< HEAD
+=======
+      // Check feature markers first
+>>>>>>> 9de26753331600944d26894b8722a60e8f4ff85e
       if (featuresGroupRef.current) {
         const featureIntersects = raycaster.intersectObjects(featuresGroupRef.current.children);
         if (featureIntersects.length > 0) {
@@ -208,6 +249,10 @@ export default function GlobeView({
         }
       }
 
+<<<<<<< HEAD
+=======
+      // If no marker clicked, inspect terrain
+>>>>>>> 9de26753331600944d26894b8722a60e8f4ff85e
       const intersects = raycaster.intersectObject(proxySphereRef.current);
       if (intersects.length > 0) {
         const point = intersects[0].point;
@@ -273,6 +318,7 @@ export default function GlobeView({
       marker.position.set(pos.x, pos.y, pos.z);
       marker.userData = { featureId: f.id };
       group.add(marker);
+<<<<<<< HEAD
     });
   }, [features, selectedFeatureId]);
 
@@ -298,6 +344,19 @@ export default function GlobeView({
       group.add(ring);
     });
   }, [evaluationPoints]);
+=======
+
+      // Glow effect for selected
+      if (f.id === selectedFeatureId) {
+        const glowGeom = new THREE.SphereGeometry(0.25, 16, 16);
+        const glowMat = new THREE.MeshBasicMaterial({ color: 0x3b82f6, transparent: true, opacity: 0.3 });
+        const glow = new THREE.Mesh(glowGeom, glowMat);
+        glow.position.set(pos.x, pos.y, pos.z);
+        group.add(glow);
+      }
+    });
+  }, [features, selectedFeatureId, globeRadius]);
+>>>>>>> 9de26753331600944d26894b8722a60e8f4ff85e
 
   useEffect(() => {
     if (!lgrsGroupRef.current) return;
@@ -306,6 +365,16 @@ export default function GlobeView({
     if (!layers.lgrs?.active) return;
 
     const gridData = getLGRSGridLines(1, 'EQ');
+<<<<<<< HEAD
+=======
+    const ltmMaterial = new THREE.LineBasicMaterial({ color: 0x4dabf7, opacity: layers.lgrs.opacity * 0.75, transparent: true });
+    const polarBoundaryMaterial = new THREE.LineBasicMaterial({ color: 0x38bdf8, opacity: Math.min(1, layers.lgrs.opacity * 1.15), transparent: true });
+    const cellMaterial = new THREE.LineBasicMaterial({ color: 0x93c5fd, opacity: Math.min(0.9, layers.lgrs.opacity * 0.85), transparent: true });
+
+    const ltmPoints: THREE.Vector3[] = [];
+    const polarPoints: THREE.Vector3[] = [];
+    const cellPoints: THREE.Vector3[] = [];
+>>>>>>> 9de26753331600944d26894b8722a60e8f4ff85e
     const radius = globeRadius * 1.002;
 
     const getPos = (lat: number, lng: number) => {
@@ -314,13 +383,24 @@ export default function GlobeView({
       return new THREE.Vector3(radius * Math.cos(phi) * Math.cos(theta), radius * Math.sin(phi), radius * Math.cos(phi) * Math.sin(theta));
     };
 
+<<<<<<< HEAD
     const ltmPoints: THREE.Vector3[] = [];
+=======
+>>>>>>> 9de26753331600944d26894b8722a60e8f4ff85e
     gridData.lat.forEach((latObj) => {
       const lat = latObj.value;
+      const target = Math.abs(lat) === POLAR_LATITUDE_THRESHOLD ? polarPoints : ltmPoints;
       for (let lng = -180; lng < 180; lng += 5) {
+<<<<<<< HEAD
         ltmPoints.push(getPos(lat, lng), getPos(lat, lng + 5));
       }
     });
+=======
+        target.push(getPos(lat, lng), getPos(lat, lng + 5));
+      }
+    });
+
+>>>>>>> 9de26753331600944d26894b8722a60e8f4ff85e
     gridData.lng.forEach((lngObj) => {
       const lng = lngObj.value;
       for (let lat = -POLAR_LATITUDE_THRESHOLD; lat < POLAR_LATITUDE_THRESHOLD; lat += 4) {
@@ -328,8 +408,42 @@ export default function GlobeView({
       }
     });
 
+<<<<<<< HEAD
     group.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(ltmPoints), new THREE.LineBasicMaterial({ color: 0x4dabf7, opacity: layers.lgrs.opacity * 0.75, transparent: true })));
   }, [layers.lgrs]);
+=======
+    const digits: 0 | 1 = cameraFocus.distance < 32 ? 1 : 0;
+    const windowDeg = digits === 1 ? 14 : 45;
+    const cells = getLGRSCellsInBounds({
+      south: Math.max(-90, cameraFocus.lat - windowDeg),
+      north: Math.min(90, cameraFocus.lat + windowDeg),
+      west: Math.max(-180, cameraFocus.lng - windowDeg),
+      east: Math.min(180, cameraFocus.lng + windowDeg),
+    }, digits, 120);
+
+    cells.forEach((cell) => {
+      const poly = cell.polygon;
+      for (let i = 0; i < poly.length - 1; i++) {
+        cellPoints.push(getPos(poly[i][0], poly[i][1]), getPos(poly[i + 1][0], poly[i + 1][1]));
+      }
+    });
+
+    group.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(ltmPoints), ltmMaterial));
+    group.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(polarPoints), polarBoundaryMaterial));
+    if (cellPoints.length > 0) group.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(cellPoints), cellMaterial));
+  }, [layers.lgrs, globeRadius, cameraFocus]);
+
+  const handleManualZoom = (factor: number) => {
+    const controls = controlsRef.current;
+    if (!controls) return;
+    const camera = controls.object;
+    const target = controls.target;
+    const offset = new THREE.Vector3().subVectors(camera.position, target);
+    offset.multiplyScalar(factor);
+    camera.position.copy(target).add(offset);
+    controls.update();
+  };
+>>>>>>> 9de26753331600944d26894b8722a60e8f4ff85e
 
   useEffect(() => {
     if (moonMeshRef.current && dynamicTexture) {
@@ -353,6 +467,14 @@ export default function GlobeView({
       earthRef.current.position.set(ex, ey, ez);
       earthRef.current.visible = true;
       earthRef.current.lookAt(0, 0, 0);
+<<<<<<< HEAD
+=======
+
+      const dist = Math.sqrt(Math.pow(sx - lastSunPos.current[0], 2) + Math.pow(sy - lastSunPos.current[1], 2) + Math.pow(sz - lastSunPos.current[2], 2));
+      if (dist > 0.005) {
+        lastSunPos.current = [sx, sy, sz];
+      }
+>>>>>>> 9de26753331600944d26894b8722a60e8f4ff85e
     } else {
       ambientLightRef.current.intensity = 0.4;
       sunGroupRef.current.visible = false;
@@ -363,10 +485,30 @@ export default function GlobeView({
   return (
     <div className="w-full h-full relative group bg-black overflow-hidden">
       <div ref={mountRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
+<<<<<<< HEAD
+=======
+
+      {/* Legend - Bottom Right */}
+      {!isMini && (
+        <div className="absolute bottom-6 right-6 z-[1000] pointer-events-none flex flex-col items-end gap-1">
+          <div className="bg-black/60 backdrop-blur-md border border-white/10 px-3 py-1.5 flex flex-col items-end gap-1 text-[9px] uppercase tracking-[0.2em] font-bold shadow-2xl">
+            <div className="flex items-center gap-2">
+              <span className="text-blue-400">MODEL:</span>
+              <span className="text-white/80">NASA SVS LRO 8K</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-blue-400">ENGINE:</span>
+              <span className="text-white/80">NOMINAL</span>
+            </div>
+          </div>
+        </div>
+      )}
+>>>>>>> 9de26753331600944d26894b8722a60e8f4ff85e
 
       <div className="absolute top-4 left-4 flex flex-col gap-2 pointer-events-none">
         <div className="flex flex-col gap-1 pointer-events-auto">
           <ControlBtn onClick={() => controlsRef.current?.reset()} icon={<RotateCcw className="w-3 h-3" />} />
+<<<<<<< HEAD
           <ControlBtn onClick={() => {
             const c = controlsRef.current;
             if (!c) return;
@@ -383,6 +525,10 @@ export default function GlobeView({
             const offset = new THREE.Vector3().subVectors(cam.position, target).multiplyScalar(1.2);
             cam.position.copy(target).add(offset);
           }} icon={<ZoomOut className="w-3 h-3" />} />
+=======
+          <ControlBtn onClick={() => handleManualZoom(0.8)} icon={<ZoomIn className="w-3 h-3" />} />
+          <ControlBtn onClick={() => handleManualZoom(1.2)} icon={<ZoomOut className="w-3 h-3" />} />
+>>>>>>> 9de26753331600944d26894b8722a60e8f4ff85e
           <div className="h-px bg-white/10 my-1" />
           <ControlBtn onClick={onToggleSim} icon={isSimActive ? <Sun className="w-3.5 h-3.5 text-blue-400" /> : <Orbit className="w-3.5 h-3.5" />} active={isSimActive} />
         </div>

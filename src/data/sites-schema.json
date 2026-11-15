@@ -1,0 +1,66 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Space Sites List",
+    "description": "Schema to validate a list of landing sites for lunar missions.",
+    "type": "object",
+    "properties": {
+      "sites": {
+        "type": "array",
+        "description": "List of sites.",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "internal site id"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Name of the site."
+            },
+            "mission_ids": {
+                "type": "array",
+                "minimum": 1,
+                "description": "List of mission ids targeting this site",
+                "items": {
+                    "type": "integer"
+                },
+                "uniqueItems": true
+            },
+            "cell_id": {
+              "type": "string",
+              "pattern": "^(([1-9]|[1-3][0-9]|4[0-5])[C-HJ-NP-X]|[ABYZ]) [A-HJ-NP-Z]{2} [-A-HJ-NP-Z][0-9]{2} [-A-HJ-NP-Z][0-9]{2}$",
+              "description": "LGRS grid cell identifier in ACC format (10x10m) (e.g., 26N TF J03 V41)."
+            },
+            "lat": {
+              "type": "number",
+              "minimum": -90,
+              "maximum": 90,
+              "description": "Selenographic latitude in decimal degrees."
+            },
+            "long": {
+              "type": "number",
+              "minimum": -180,
+              "maximum": 180,
+              "description": "Selenographic longitude in decimal degrees."
+            }
+          },
+          "required": [
+            "id",
+            "name",
+            "mission_ids",
+            "cell_id",
+            "lat",
+            "long"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    "required": [
+      "sites"
+    ],
+    "additionalProperties": false
+  }

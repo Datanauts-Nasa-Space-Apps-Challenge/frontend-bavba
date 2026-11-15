@@ -35,41 +35,46 @@ export default function StatusBar({ selectedPoint, viewMode, isLoading }: Status
   const timeStringLTC = now ? getLTC(now) : '--:--:--';
 
   return (
-    <footer className="h-10 border-t border-white/10 bg-black flex items-center justify-between px-8 text-[9px] uppercase tracking-[0.25em] text-white/30 font-mono flex-shrink-0 z-50">
+    <footer className="h-10 border-t border-white/10 bg-black flex items-center justify-between px-8 text-[9px] uppercase tracking-[0.25em] font-mono flex-shrink-0 z-50">
       <div className="flex items-center gap-8">
         <div className="flex items-center gap-2">
-          ENGINE: {isLoading ? 'PROCESSING' : 'NOMINAL'}
+          <span className="text-blue-400">ENGINE:</span>
+          <span className="text-white">{isLoading ? 'PROCESSING' : 'NOMINAL'}</span>
           <GlossaryBtn term="Cartographic Tile Engine: Indicates real-time processing and loading of NASA WMTS data." />
         </div>
         <div className="hidden lg:flex items-center gap-2">
-          DATUM: MOON_ME_IAU2000
+          <span className="text-blue-400">DATUM:</span>
+          <span className="text-white">MOON_ME_IAU2000</span>
           <GlossaryBtn term="Coordinate Reference System: Using IAU Mean Earth/Rotation Axis lunar cartographic frame." />
         </div>
         {viewMode && (
           <div className="hidden md:block">
-            VIEW: {viewMode.replace('_', ' ')}
+            <span className="text-blue-400">VIEW:</span>
+            <span className="text-white ml-2">{viewMode.replace('_', ' ')}</span>
           </div>
         )}
       </div>
 
       <div className="flex items-center gap-8">
         <div className="flex items-center gap-4">
-          <span>COORD:</span>
-          <span className="min-w-[140px]">
+          <span className="text-blue-400">COORD:</span>
+          <span className="min-w-[140px] text-white">
             {selectedPoint ? `${selectedPoint.lat.toFixed(4)}°N, ${selectedPoint.lng.toFixed(4)}°E` : '0.0000, 0.0000'}
           </span>
         </div>
         <div className="flex items-center gap-4 border-l border-white/10 pl-8">
-          <span>LGRS:</span>
-          <span className="min-w-[100px]">{lgrs}</span>
+          <span className="text-blue-400">LGRS:</span>
+          <span className="min-w-[100px] text-white">{lgrs}</span>
           <GlossaryBtn term="Lunar Grid Reference System: Tactical coordinate indexing V2.1." />
         </div>
         <div className="flex items-center gap-4 border-l border-white/10 pl-8">
-          <span>UTC: {timeStringUTC}</span>
+          <span className="text-blue-400">UTC:</span>
+          <span className="text-white">{timeStringUTC}</span>
           <GlossaryBtn term="Coordinated Universal Time (Earth Standard)." />
         </div>
         <div className="flex items-center gap-4 border-l border-white/10 pl-8">
-          <span>LTC: {timeStringLTC}</span>
+          <span className="text-blue-400">LTC:</span>
+          <span className="text-white">{timeStringLTC}</span>
           <GlossaryBtn term="Lunar Time Control: Local mission time based on the synodic cycle phases." />
         </div>
       </div>

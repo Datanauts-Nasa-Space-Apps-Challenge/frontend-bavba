@@ -9,7 +9,10 @@ import {
   Eye,
   EyeOff,
   HelpCircle,
-  Trash2
+  Trash2,
+  Database,
+  History,
+  Info
 } from 'lucide-react';
 import { getLGRSCode, decodeLGRS } from '@/lib/lgrs';
 import { Slider } from "@/components/ui/slider";
@@ -98,7 +101,7 @@ export function InfoPanel({ feature, inspectedPoint, simTime, onAddPoint, evalua
 
       <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
         {activeTab === 'info' ? (
-          feature ? <FeatureDetails feature={feature} /> : <NoSelection message="SELECT A FEATURE ON THE MAP" />
+          feature ? <FeatureDetails feature={feature} /> : <NoSelection message="SELECT A SITE ON THE MAP" icon={<Database className="w-8 h-8" />} />
         ) : activeTab === 'inspector' ? (
           inspectedPoint ? (
             <SurfaceInspector 
@@ -106,7 +109,7 @@ export function InfoPanel({ feature, inspectedPoint, simTime, onAddPoint, evalua
               onAdd={() => handleAddEvaluation('inspected')} 
             />
           ) : (
-            <NoSelection message="CLICK GLOBE TO INSPECT" />
+            <NoSelection message="CLICK GLOBE TO INSPECT" icon={<Info className="w-8 h-8" />} />
           )
         ) : (
           <div className="space-y-8 animate-in fade-in duration-300">
@@ -232,22 +235,46 @@ function FeatureDetails({ feature }: { feature: LunarFeature }) {
         <div className="flex items-center justify-between">
           <span className={cn(
             "px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.15em] border",
-            feature.status === 'active' ? "bg-green-500/10 border-green-500/30 text-green-500" :
+            feature.status === 'completed' ? "bg-green-500/10 border-green-500/30 text-green-500" :
             feature.status === 'planned' ? "bg-blue-500/10 border-blue-500/30 text-blue-500" :
+            feature.status === 'partial' ? "bg-amber-500/10 border-amber-500/30 text-amber-500" :
             "bg-white/5 border-white/10 text-white/50"
           )}>
             {feature.status}
           </span>
+          <div className="text-[10px] text-white/40 flex items-center gap-2">
+            <History className="w-3 h-3" />
+            {feature.agency || 'UNKNOWN'}
+          </div>
         </div>
         <h2 className="text-2xl font-bold tracking-tight">{feature.name}</h2>
+        <p className="text-[11px] text-white/60 leading-relaxed uppercase tracking-tight">
+          {feature.description}
+        </p>
       </section>
 
       <section className="grid grid-cols-2 gap-px bg-white/5 border border-white/10">
         <MetricBox label="LATITUDE" value={`${feature.latitude.toFixed(6)}°`} />
         <MetricBox label="LONGITUDE" value={`${feature.longitude.toFixed(6)}°`} />
-        <MetricBox label="ELEVATION" value={`${feature.elevation || 0} m`} help={GLOSSARY.elevation} />
-        <MetricBox label="LGRS CODE" value={lgrs.code} highlight help={GLOSSARY.lgrs} />
+        <MetricBox label="AGENCY" value={feature.agency || 'N/A'} />
+        <MetricBox label="LGRS REF" value={feature.cell_id || lgrs.code} highlight help={GLOSSARY.lgrs} />
       </section>
+      
+      {feature.horizon_profile && (
+        <section className="space-y-2">
+           <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/30">Horizon Elevation Profile</h4>
+           <div className="h-16 flex items-end gap-px bg-white/5 p-2 border border-white/10">
+              {feature.horizon_profile.slice(0, 180).map((h, i) => (
+                <div 
+                  key={i} 
+                  className="flex-1 bg-blue-500/40" 
+                  style={{ height: `${(h / 90) * 100}%` }}
+                />
+              ))}
+           </div>
+           <p className="text-[8px] text-center text-white/20">360° Panoramic Obstruction Analysis</p>
+        </section>
+      )}
     </div>
   );
 }
@@ -266,9 +293,10 @@ function MetricBox({ label, value, highlight, help }: { label: string; value: st
   );
 }
 
-function NoSelection({ message }: { message: string }) {
+function NoSelection({ message, icon }: { message: string, icon?: React.ReactNode }) {
   return (
     <div className="h-full flex flex-col items-center justify-center text-center p-12 opacity-20 border border-dashed border-white/10">
+      {icon && <div className="mb-4">{icon}</div>}
       <p className="text-[10px] uppercase tracking-[0.3em] leading-loose">
         {message}
       </p>

@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { MapViewMode, MapLayersConfig, EvaluationPoint } from '@/types/lunar';
-import { LUNAR_FEATURES } from '@/data/lunar-features';
-import { NASA_TREK_LAYERS, LayerCategory } from '@/lib/moon-wmts-catalog';
+import { MASTER_CATALOG } from '@/data/lunar-features';
+import { NASA_TREK_LAYERS } from '@/lib/moon-wmts-catalog';
 import GlobeView from './GlobeView';
 import ProjectionView2D from './ProjectionView2D';
 import { LayerPanel, InfoPanel } from './SidebarPanels';
@@ -21,7 +21,7 @@ export default function MapInterface() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   
-  // Simulation State (Lifted for 2D/3D sync)
+  // Simulation State
   const [simTime, setSimTime] = useState(0);
   const [simSpeed, setSimSpeed] = useState(1);
   const [isSimActive, setIsSimActive] = useState(true);
@@ -29,7 +29,6 @@ export default function MapInterface() {
   const [evaluationPoints, setEvaluationPoints] = useState<EvaluationPoint[]>([]);
 
   useEffect(() => {
-    // Initialize simulation time only on client to avoid hydration mismatch
     setSimTime(Date.now());
   }, []);
 
@@ -43,6 +42,16 @@ export default function MapInterface() {
         version: 'V2.1',
         source: 'USGS/McClernan',
         category: 'lgrs',
+        blendMode: 'normal'
+      },
+      missions: {
+        id: 'missions',
+        active: true,
+        opacity: 1,
+        loading: false,
+        version: 'V1.0',
+        source: 'NAVLUNAR Archive',
+        category: 'imagery',
         blendMode: 'normal'
       },
       daynight: {
@@ -72,10 +81,10 @@ export default function MapInterface() {
   });
 
   const filteredFeatures = useMemo(() => {
-    if (!searchQuery) return LUNAR_FEATURES;
-    return LUNAR_FEATURES.filter(f => 
+    if (!searchQuery) return MASTER_CATALOG;
+    return MASTER_CATALOG.filter(f => 
       f.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      f.type.toLowerCase().includes(searchQuery.toLowerCase())
+      (f.agency && f.agency.toLowerCase().includes(searchQuery.toLowerCase()))
     );
   }, [searchQuery]);
 
@@ -85,7 +94,7 @@ export default function MapInterface() {
 
   const activePoint = useMemo(() => {
     if (selectedFeatureId) {
-      const f = LUNAR_FEATURES.find(f => f.id === selectedFeatureId);
+      const f = MASTER_CATALOG.find(f => f.id === selectedFeatureId);
       if (f) return { lat: f.latitude, lng: f.longitude };
     }
     if (inspectedPoint) {
@@ -93,6 +102,20 @@ export default function MapInterface() {
     }
     return null;
   }, [selectedFeatureId, inspectedPoint]);
+
+  // Automatic Projection Switching Logic
+  const handleRegionChange = useCallback((lat: number, lng: number) => {
+    if (viewMode === 'quad') return; 
+    
+    let targetMode: MapViewMode = viewMode;
+    if (lat > 60) targetMode = 'north_pole';
+    else if (lat < -60) targetMode = 'south_pole';
+    else targetMode = 'central';
+
+    if (targetMode !== viewMode && viewMode !== 'globe' && viewMode !== 'quad') {
+      setViewMode(targetMode);
+    }
+  }, [viewMode]);
 
   const toggleLayer = (id: string) => {
     setLayers(prev => ({ 
@@ -111,17 +134,16 @@ export default function MapInterface() {
   const handleInspect = (lat: number, lng: number, telemetry: CelestialPositions) => {
     setInspectedPoint({ lat, lng, telemetry });
     setSelectedFeatureId(null);
+    handleRegionChange(lat, lng);
   };
 
   const handle2DInspect = (lat: number, lng: number) => {
-    // Current telemetry at click time
     const telemetry = calculateLunarEphemeris(simTime || Date.now());
     handleInspect(lat, lng, telemetry);
   };
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
-    // Trigger window resize event after state update to let maps know they need to re-calc size
     setTimeout(() => {
       window.dispatchEvent(new Event('resize'));
     }, 50);
@@ -129,19 +151,8 @@ export default function MapInterface() {
 
   return (
     <div className="flex flex-col h-screen bg-[#050505] text-white overflow-hidden font-mono">
-      <header className="h-14 border-b border-white/10 flex items-center justify-between px-6 bg-black z-[100]">
-        <div className="flex items-center gap-10">
-          <div className="flex items-center">
-            <Image 
-              src="/logo/datanauts-logo.png" 
-              alt="Datanauts Logo" 
-              width={140} 
-              height={40} 
-              className="h-8 w-auto object-contain"
-              priority
-            />
-          </div>
-
+      <header className="h-20 border-b border-white/10 flex items-center justify-between px-6 bg-black z-[100] relative">
+        <div className="flex-1 flex items-center justify-start">
           <nav className="flex items-center gap-0.5 bg-white/5 p-0.5 rounded-sm border border-white/5">
             <ViewToggle active={viewMode === 'quad'} onClick={() => setViewMode('quad')} icon={<LayoutGrid className="w-3.5 h-3.5" />} label="Quad" />
             <ViewToggle active={viewMode === 'globe'} onClick={() => setViewMode('globe')} label="3D" />
@@ -151,26 +162,39 @@ export default function MapInterface() {
           </nav>
         </div>
 
-        <div className="flex items-center gap-6">
-          <div className="relative w-40">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/20" />
-            <Input 
-              placeholder="search" 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-white/5 border-white/10 pl-8 h-8 text-[10px] tracking-widest rounded-none"
-            />
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+          <Image 
+            src="/logo/datanauts-logo.png" 
+            alt="Datanauts Logo" 
+            width={400} 
+            height={120} 
+            className="h-16 w-auto object-contain"
+            priority
+          />
+        </div>
+
+        <div className="flex-1 flex items-center justify-end gap-6">
+          <div className="flex items-center gap-4">
+            <div className="relative w-48">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/20" />
+              <Input 
+                placeholder="search" 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="bg-white/5 border-white/10 pl-8 h-9 text-[10px] tracking-widest rounded-none"
+              />
+            </div>
+            <button onClick={toggleSidebar} className="p-2 border border-white/10 hover:bg-white/5 transition-all">
+              <Menu className="w-4 h-4" />
+            </button>
           </div>
-          <button onClick={toggleSidebar} className="p-1.5 border border-white/10 hover:bg-white/5 transition-all">
-            <Menu className="w-4 h-4" />
-          </button>
         </div>
       </header>
 
       <div className="flex flex-1 relative overflow-hidden">
         {isSidebarOpen && (
-          <aside className="w-72 border-r border-white/10 bg-[#0a0a0a] flex flex-col divide-y divide-white/10 z-20">
-            <div className="p-4 flex-1 overflow-y-auto">
+          <aside className="w-80 border-r border-white/10 bg-[#0a0a0a] flex flex-col divide-y divide-white/10 z-20">
+            <div className="p-4 h-1/2 overflow-y-auto">
               <h3 className="text-[9px] uppercase tracking-[0.3em] text-white/30 mb-4 flex items-center gap-2">
                 <Layers className="w-3 h-3" /> LAYERS
               </h3>
@@ -180,9 +204,9 @@ export default function MapInterface() {
                 onOpacityChange={setLayerOpacity} 
               />
             </div>
-            <div className="p-4 h-[60%] overflow-y-auto bg-black/40">
+            <div className="p-4 flex-1 overflow-y-auto bg-black/40">
               <InfoPanel 
-                feature={LUNAR_FEATURES.find(f => f.id === selectedFeatureId) || null} 
+                feature={MASTER_CATALOG.find(f => f.id === selectedFeatureId) || null} 
                 inspectedPoint={inspectedPoint}
                 simTime={simTime} 
                 onAddPoint={(p) => setEvaluationPoints(prev => [...prev, { ...p, id: Math.random().toString(), color: '#3b82f6' }])} 
@@ -241,7 +265,17 @@ export default function MapInterface() {
               onToggleSim={() => setIsSimActive(!isSimActive)}
             />
           ) : (
-            <ProjectionView2D key={`single-${viewMode}`} mode={viewMode} features={filteredFeatures} selectedFeatureId={selectedFeatureId} onSelectFeature={setSelectedFeatureId} layers={layers} simTime={simTime} evaluationPoints={evaluationPoints} onInspectPoint={handle2DInspect} />
+            <ProjectionView2D 
+              key={`single-${viewMode}`} 
+              mode={viewMode} 
+              features={filteredFeatures} 
+              selectedFeatureId={selectedFeatureId} 
+              onSelectFeature={setSelectedFeatureId} 
+              layers={layers} 
+              simTime={simTime} 
+              evaluationPoints={evaluationPoints} 
+              onInspectPoint={handle2DInspect} 
+            />
           )}
         </main>
       </div>

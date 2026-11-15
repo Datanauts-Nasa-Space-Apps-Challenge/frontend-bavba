@@ -21,12 +21,12 @@ export default function ComparisonWorkspace({ evaluationPoints, onRemovePoint, o
   const [activeTab, setActiveTab] = useState<'grid' | 'table'>('grid');
 
   const layers: MapLayersConfig = {
-    labels: { active: true, opacity: 0.8, loading: false, source: '', version: '' },
-    missions: { active: true, opacity: 1, loading: false, source: '', version: '' },
-    relief: { active: true, opacity: 0.4, loading: false, source: '', version: '' },
-    illumination: { active: true, opacity: 0.6, loading: false, source: '', version: '' },
-    psr: { active: true, opacity: 0.6, loading: false, source: '', version: '' },
-    daynight: { active: false, opacity: 0.3, loading: false, source: '', version: '' },
+    labels: { id: 'labels', active: true, opacity: 0.8, loading: false, source: '', version: '', category: 'lgrs', blendMode: 'normal' },
+    missions: { id: 'missions', active: true, opacity: 1, loading: false, source: '', version: '', category: 'imagery', blendMode: 'normal' },
+    relief: { id: 'relief', active: true, opacity: 0.4, loading: false, source: '', version: '', category: 'topography', blendMode: 'normal' },
+    illumination: { id: 'illumination', active: true, opacity: 0.6, loading: false, source: '', version: '', category: 'illumination', blendMode: 'normal' },
+    psr: { id: 'psr', active: true, opacity: 0.6, loading: false, source: '', version: '', category: 'illumination', blendMode: 'normal' },
+    daynight: { id: 'daynight', active: false, opacity: 0.3, loading: false, source: '', version: '', category: 'illumination', blendMode: 'normal' },
   };
 
   return (
@@ -109,10 +109,10 @@ export default function ComparisonWorkspace({ evaluationPoints, onRemovePoint, o
                 layers={layers}
              />
              <div className="absolute top-6 right-6 p-4 bg-black/60 backdrop-blur-md border border-white/10 rounded flex items-center gap-4">
-                <Target className="w-4 h-4 text-white/40" />
+                <Target className="w-10 h-10 text-blue-400" />
                 <div className="space-y-0.5">
-                   <h4 className="text-[10px] font-bold uppercase tracking-widest">Coordinated Observer</h4>
-                   <p className="text-[8px] text-white/20 uppercase tracking-widest">South Polar Stereographic · Epoch: J2000</p>
+                   <h4 className="text-[10px] font-bold uppercase tracking-widest text-blue-400">Coordinated Observer</h4>
+                   <p className="text-[8px] text-white uppercase tracking-widest">South Polar Stereographic · Epoch: J2000</p>
                 </div>
              </div>
           </div>

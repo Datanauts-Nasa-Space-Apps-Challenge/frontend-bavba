@@ -1,7 +1,7 @@
 import { LayerCategory, BlendMode } from '@/lib/moon-wmts-catalog';
 
 export type LunarFeatureType = 'crater' | 'landing_site' | 'mountain' | 'mare' | 'rille' | 'man_made' | 'scientific_region';
-export type LunarFeatureStatus = 'historical' | 'active' | 'planned' | 'proposed' | 'unknown';
+export type LunarFeatureStatus = 'historical' | 'active' | 'planned' | 'proposed' | 'unknown' | 'completed' | 'failed' | 'partial';
 
 export type MapViewMode = 'globe' | 'central' | 'north_pole' | 'south_pole' | 'quad';
 
@@ -38,6 +38,8 @@ export interface LunarFeature {
   description: string;
   source: string;
   mission?: string;
+  mission_ids?: number[];
+  cell_id?: string;
   status: LunarFeatureStatus;
   elevation?: number;
   slopeAvg?: number;
@@ -51,4 +53,21 @@ export interface LunarFeature {
   date?: string;
   agency?: string;
   vehicle?: string;
+  horizon_profile?: number[];
+}
+
+export interface Coordinate {
+  lat: number;
+  lng: number;
+}
+
+export interface Mission {
+  id: string;
+  name: string;
+  year?: number;
+  agency: string;
+  type: string;
+  coordinates: Coordinate;
+  description: string;
+  status?: string;
 }

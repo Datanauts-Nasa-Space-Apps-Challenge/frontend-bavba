@@ -1,7 +1,7 @@
 
 ## 1. Scope and Technical Overview
 
-This document describes the frontend architecture, cartographic rendering pipeline, geodetic computation models, astronomical simulation methods, and scientific assumptions implemented in NAVLUNAR.
+This document describes the frontend architecture, cartographic rendering pipeline, geodetic computation models, astronomical simulation methods, and scientific assumptions implemented.
 
 It serves as the technical reference for the client-side application.
 
@@ -127,7 +127,7 @@ Three.js resources, animation loops, event listeners, and WebGL contexts must be
 
 ## 3.1. Reference Datum
 
-NAVLUNAR uses the lunar reference system:
+Uses the lunar reference system:
 
 `IAU_Moon_2000`
 
@@ -175,7 +175,7 @@ In particular, local elevation measurements are not automatically incorporated i
 
 ## 4.1. Projection Strategy
 
-NAVLUNAR implements three cartographic configurations through Proj4 and Proj4Leaflet.
+Implements three cartographic configurations through Proj4 and Proj4Leaflet.
 
 The selection of projection depends on the geographic region being visualized.
 
@@ -1338,7 +1338,7 @@ These limitations are intrinsic to the selected simplified models and should be 
 
 # 15. Final Scientific Considerations
 
-NAVLUNAR's frontend combines cartographic transformations, raster visualization, spherical geometry, and simplified astronomical computation within a unified interactive environment.
+The application frontend combines cartographic transformations, raster visualization, spherical geometry, and simplified astronomical computation within a unified interactive environment.
 
 The main engineering principle is the separation of three distinct concepts.
 
@@ -1358,7 +1358,7 @@ These three properties are related but are not interchangeable.
 
 A high-resolution raster does not guarantee accurate geographic positioning. A precise coordinate transformation does not compensate for an inaccurate source dataset. A visually convincing illumination model does not establish astronomical accuracy.
 
-For this reason, NAVLUNAR should be understood as a scientific geospatial visualization and analysis prototype.
+For this reason, should be understood as a scientific geospatial visualization and analysis prototype.
 
 Its outputs are intended for exploration, comparative analysis, and educational purposes.
 

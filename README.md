@@ -1336,7 +1336,7 @@ These limitations are intrinsic to the selected simplified models and should be 
 
 ---
 
-# 16. Final Scientific Considerations
+# 15. Final Scientific Considerations
 
 NAVLUNAR's frontend combines cartographic transformations, raster visualization, spherical geometry, and simplified astronomical computation within a unified interactive environment.
 

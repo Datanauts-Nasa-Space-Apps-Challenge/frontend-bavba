@@ -1,6 +1,4 @@
 
-# NAVLUNAR — Frontend Architecture & Scientific Computing
-
 ## 1. Scope and Technical Overview
 
 This document describes the frontend architecture, cartographic rendering pipeline, geodetic computation models, astronomical simulation methods, and scientific assumptions implemented in NAVLUNAR.
@@ -1335,71 +1333,6 @@ The following limitations must be considered when interpreting its outputs.
 | Cell telemetry | Representative point | Does not characterize the entire cell |
 
 These limitations are intrinsic to the selected simplified models and should be distinguished from implementation defects.
-
----
-
-# 15. Recommended Frontend Module Organization
-
-The following structure describes the recommended separation of frontend responsibilities. It is an architectural reference rather than a claim that every path already exists in the repository.
-
-```text
-src/
-├── app/
-│   ├── page.tsx
-│   └── cell/
-│       └── [code]/
-│           └── page.tsx
-│
-├── components/
-│   ├── map/
-│   │   ├── MapView.tsx
-│   │   ├── ProjectionControl.tsx
-│   │   └── LayerControl.tsx
-│   │
-│   ├── globe/
-│   │   ├── GlobeView.tsx
-│   │   ├── LunarSphere.tsx
-│   │   └── SolarLighting.tsx
-│   │
-│   ├── analysis/
-│   │   ├── CellAnalysis.tsx
-│   │   └── SolarTelemetry.tsx
-│   │
-│   └── ui/
-│
-├── lib/
-│   ├── geodesy/
-│   │   ├── projections.ts
-│   │   ├── coordinates.ts
-│   │   └── distances.ts
-│   │
-│   ├── lgrs/
-│   │   ├── encoder.ts
-│   │   ├── decoder.ts
-│   │   ├── bands.ts
-│   │   └── sectors.ts
-│   │
-│   ├── astronomy/
-│   │   ├── solarPosition.ts
-│   │   ├── terminator.ts
-│   │   ├── lunarPhase.ts
-│   │   └── libration.ts
-│   │
-│   ├── raster/
-│   │   ├── wmts.ts
-│   │   └── textureComposer.ts
-│   │
-│   └── spatial/
-│       ├── cellBounds.ts
-│       └── proximity.ts
-│
-└── types/
-    ├── geospatial.ts
-    ├── astronomy.ts
-    └── lgrs.ts
-```
-
-The purpose of this organization is to keep mathematical operations reusable, testable, and independent of the presentation layer.
 
 ---
 

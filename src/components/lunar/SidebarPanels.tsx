@@ -12,13 +12,7 @@ import {
   EyeOff,
   HelpCircle,
   Trash2,
-<<<<<<< HEAD
   AlertTriangle
-=======
-  Database,
-  History,
-  Info
->>>>>>> 9de26753331600944d26894b8722a60e8f4ff85e
 } from 'lucide-react';
 import { getLGRSCode, decodeLGRS } from '@/lib/lgrs';
 import { Slider } from "@/components/ui/slider";
@@ -143,11 +137,7 @@ export function InfoPanel({
 
       <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
         {activeTab === 'info' ? (
-<<<<<<< HEAD
           feature ? <FeatureDetails feature={feature} /> : <NoSelection message="SELECT A SITE ON THE MAP" />
-=======
-          feature ? <FeatureDetails feature={feature} /> : <NoSelection message="SELECT A SITE ON THE MAP" icon={<Database className="w-8 h-8" />} />
->>>>>>> 9de26753331600944d26894b8722a60e8f4ff85e
         ) : activeTab === 'inspector' ? (
           inspectedPoint ? (
             <SurfaceInspector 
@@ -156,7 +146,7 @@ export function InfoPanel({
               disabled={evaluationPoints.length >= 4}
             />
           ) : (
-            <NoSelection message="CLICK GLOBE TO INSPECT" icon={<Info className="w-8 h-8" />} />
+            <NoSelection message="CLICK GLOBE TO INSPECT" />
           )
         ) : (
           <div className="space-y-8 animate-in fade-in duration-300">
@@ -367,10 +357,6 @@ function FeatureDetails({ feature }: { feature: LunarFeature }) {
             {feature.status}
           </span>
           <div className="text-[10px] text-white/40 flex items-center gap-2">
-<<<<<<< HEAD
-=======
-            <History className="w-3 h-3" />
->>>>>>> 9de26753331600944d26894b8722a60e8f4ff85e
             {feature.agency || 'UNKNOWN'}
           </div>
         </div>
@@ -388,7 +374,6 @@ function FeatureDetails({ feature }: { feature: LunarFeature }) {
       </section>
       
       {feature.horizon_profile && (
-<<<<<<< HEAD
         <section className="space-y-3">
            <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/30 border-b border-white/5 pb-1">Horizon Elevation Profile</h4>
            <div className="h-16 flex items-end gap-px bg-white/5 p-2 border border-white/10 group relative">
@@ -408,20 +393,6 @@ function FeatureDetails({ feature }: { feature: LunarFeature }) {
               <span>180° (S)</span>
               <span>359°</span>
            </div>
-=======
-        <section className="space-y-2">
-           <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/30">Horizon Elevation Profile</h4>
-           <div className="h-16 flex items-end gap-px bg-white/5 p-2 border border-white/10">
-              {feature.horizon_profile.slice(0, 180).map((h, i) => (
-                <div 
-                  key={i} 
-                  className="flex-1 bg-blue-500/40" 
-                  style={{ height: `${(h / 90) * 100}%` }}
-                />
-              ))}
-           </div>
-           <p className="text-[8px] text-center text-white/20">360° Panoramic Obstruction Analysis</p>
->>>>>>> 9de26753331600944d26894b8722a60e8f4ff85e
         </section>
       )}
     </div>
@@ -442,10 +413,9 @@ function MetricBox({ label, value, highlight, help }: { label: string; value: st
   );
 }
 
-function NoSelection({ message, icon }: { message: string, icon?: React.ReactNode }) {
+function NoSelection({ message }: { message: string }) {
   return (
     <div className="h-full flex flex-col items-center justify-center text-center p-12 opacity-20 border border-dashed border-white/10">
-      {icon && <div className="mb-4">{icon}</div>}
       <p className="text-[10px] uppercase tracking-[0.3em] leading-loose">
         {message}
       </p>

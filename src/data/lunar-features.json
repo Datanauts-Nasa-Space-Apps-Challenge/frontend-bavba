@@ -1,0 +1,36 @@
+
+{
+  "features": [
+    {
+      "id": "apollo-11",
+      "name": "Apollo 11 - Statio Tranquillitatis",
+      "coords": { "lat": 0.6741, "lng": 23.4730 },
+      "type": "landing_site",
+      "description": "First crewed lunar landing site.",
+      "source": "NASA LROC",
+      "mission": "Apollo 11",
+      "status": "historical",
+      "metrics": { "elevation": -2674, "slopeAvg": 2.1 }
+    },
+    {
+      "id": "shackleton",
+      "name": "Shackleton Crater",
+      "coords": { "lat": -89.67, "lng": 0.0 },
+      "type": "crater",
+      "description": "Strategic peak on the rim with high solar visibility.",
+      "source": "NASA LOLA",
+      "status": "historical",
+      "metrics": { "elevation": 1550, "slopeAvg": 18.5 }
+    },
+    {
+      "id": "artemis-3-c1",
+      "name": "Artemis III - Peak 01",
+      "coords": { "lat": -89.44, "lng": 222.0 },
+      "type": "scientific_outpost",
+      "description": "Primary landing candidate for Artemis III.",
+      "source": "NASA Artemis Program",
+      "status": "planned",
+      "metrics": { "elevation": 850, "slopeAvg": 4.5 }
+    }
+  ]
+}

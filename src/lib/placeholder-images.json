@@ -1,0 +1,16 @@
+{
+  "placeholderImages": [
+    {
+      "id": "moon-texture",
+      "description": "NASA SVS 14959 Color Map - High Fidelity Lunar Surface",
+      "imageUrl": "https://svs.gsfc.nasa.gov/vis/a010000/a014900/a014959/color_2048.jpg",
+      "imageHint": "moon color map"
+    },
+    {
+      "id": "moon-bump",
+      "description": "NASA SVS 14959 Elevation Map (L-DEM) - Global Altimetry",
+      "imageUrl": "https://svs.gsfc.nasa.gov/vis/a010000/a014900/a014959/ldem_2048.jpg",
+      "imageHint": "moon elevation map"
+    }
+  ]
+}

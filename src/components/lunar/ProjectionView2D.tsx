@@ -3,7 +3,7 @@
 import { MapViewMode, LunarFeature, MapLayersConfig, EvaluationPoint } from '@/types/lunar';
 import dynamic from 'next/dynamic';
 
-const LeafletMap = dynamic(() => import('./LeafletMap'), { 
+const LeafletMap = dynamic(() => import('./LeafletMap'), {
   ssr: false,
   loading: () => (
     <div className="w-full h-full bg-[#050505] flex items-center justify-center">
@@ -11,7 +11,7 @@ const LeafletMap = dynamic(() => import('./LeafletMap'), {
         INITIALIZING CARTOGRAPHIC ENGINE...
       </div>
     </div>
-  )
+  ),
 });
 
 interface ProjectionView2DProps {
@@ -20,30 +20,29 @@ interface ProjectionView2DProps {
   selectedFeatureId: string | null;
   onSelectFeature: (id: string | null) => void;
   layers?: MapLayersConfig;
+  evaluationPoints: EvaluationPoint[];
   simTime?: number;
-  evaluationPoints?: EvaluationPoint[];
   onInspectPoint?: (lat: number, lng: number) => void;
   isMini?: boolean;
 }
 
-export default function ProjectionView2D({ 
-  mode, 
-  features, 
-  selectedFeatureId, 
-  onSelectFeature, 
+export default function ProjectionView2D({
+  mode,
+  features,
+  selectedFeatureId,
+  onSelectFeature,
   layers,
+  evaluationPoints,
   simTime = 0,
-  evaluationPoints = [],
   onInspectPoint,
-  isMini = false
+  isMini = false,
 }: ProjectionView2DProps) {
-  
   if (!layers) return null;
 
   return (
-    <div className="w-full h-full relative">
+    <div className="w-full h-full relative" key={`proj-wrap-${mode}-${isMini ? 'mini' : 'full'}`}>
       <LeafletMap
-        key={`${mode}-${isMini}`}
+        key={`leaflet-${mode}-${isMini ? 'mini' : 'full'}`}
         mode={mode}
         features={features}
         selectedFeatureId={selectedFeatureId}
@@ -54,27 +53,22 @@ export default function ProjectionView2D({
         onInspectPoint={onInspectPoint}
         isMini={isMini}
       />
-      
-      {!isMini && mode === 'central' && (
-        <div className="absolute bottom-14 left-6 z-[1000] pointer-events-none">
-          <div className="bg-black/60 backdrop-blur-md border border-white/10 px-4 py-2 text-[8px] md:text-[9px] text-white/40 uppercase tracking-[0.15em] font-mono shadow-2xl max-w-[80vw] md:max-w-none">
-            Basemap: NASA Trek · LRO LROC WAC mosaic (NASA/GSFC/ASU) · Grid: USGS LGRS · Names: IAU/USGS
-          </div>
-        </div>
-      )}
 
-      {!isMini && mode === 'north_pole' && (
-        <div className="absolute bottom-14 left-6 z-[1000] pointer-events-none">
-          <div className="bg-black/60 backdrop-blur-md border border-white/10 px-4 py-2 text-[8px] md:text-[9px] text-white/40 uppercase tracking-[0.15em] font-mono shadow-2xl max-w-[80vw] md:max-w-none">
-            Basemap: NASA Trek LRO_WAC_Mosaic_NPole60_100m_v02 · LROC WAC (NASA/GSFC/ASU) · Grid: USGS LGRS · Names: IAU/USGS
-          </div>
-        </div>
-      )}
-
-      {!isMini && mode === 'south_pole' && (
-        <div className="absolute bottom-14 left-6 z-[1000] pointer-events-none">
-          <div className="bg-black/60 backdrop-blur-md border border-white/10 px-4 py-2 text-[8px] md:text-[9px] text-white/40 uppercase tracking-[0.15em] font-mono shadow-2xl max-w-[80vw] md:max-w-none">
-            Basemap: NASA Trek LRO_WAC_Mosaic_SPole60_100m_v02 · LROC WAC (NASA/GSFC/ASU) · Grid: USGS LGRS · Names: IAU/USGS
+      {!isMini && (
+        <div className="absolute bottom-6 right-6 z-[1000] pointer-events-none">
+          <div className="bg-black/70 backdrop-blur-md border border-white/10 p-3 shadow-2xl flex flex-col items-end gap-1.5 rounded">
+            <div className="flex items-center gap-3 text-[9px] uppercase tracking-[0.2em] font-bold">
+               <span className="text-blue-400">BASEMAP:</span>
+               <span className="text-white/80">NASA LRO WAC</span>
+            </div>
+            <div className="flex items-center gap-3 text-[9px] uppercase tracking-[0.2em] font-bold">
+               <span className="text-blue-400">GRID:</span>
+               <span className="text-white/80">USGS LGRS V2.1</span>
+            </div>
+            <div className="mt-1 h-px w-full bg-white/5" />
+            <div className="text-[8px] text-white/30 uppercase tracking-widest font-mono">
+              IAU_Moon_2000 • {mode.replace('_', ' ')}
+            </div>
           </div>
         </div>
       )}

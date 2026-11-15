@@ -31,7 +31,7 @@ export default function SimulationControls({
   onToggle,
   telemetry
 }: SimulationControlsProps) {
-  const [isPaused, setIsPaused] = useState(true);
+  const [isPaused, setIsPaused] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -54,10 +54,10 @@ export default function SimulationControls({
   if (!isActive || !mounted) return null;
 
   return (
-    <div className="absolute bottom-14 left-1/2 -translate-x-1/2 w-full max-w-4xl px-4 pointer-events-none animate-in slide-in-from-bottom-5 duration-500">
-      <div className="bg-black/80 backdrop-blur-xl border border-white/10 p-4 shadow-2xl pointer-events-auto rounded-lg">
+    <div className="absolute bottom-14 left-1/2 -translate-x-1/2 w-full max-w-4xl px-4 pointer-events-none animate-in slide-in-from-bottom-5 duration-500 z-[1001]">
+      <div className="bg-black/80 backdrop-blur-xl border border-white/10 p-4 shadow-2xl pointer-events-auto rounded-lg group/panel relative overflow-hidden">
         {/* Telemetry Bar */}
-        <div className="grid grid-cols-4 gap-4 mb-4 border-b border-white/5 pb-4">
+        <div className="grid grid-cols-4 gap-4 mb-2 border-b border-white/5 pb-4">
           <TelemetryItem 
             label="UTC Simulation Time" 
             value={timestamp > 0 ? format(new Date(timestamp), 'yyyy-MM-dd HH:mm') : '---'} 
@@ -76,11 +76,28 @@ export default function SimulationControls({
           />
         </div>
 
-        {/* Controls */}
-        <div className="flex items-center gap-6">
+        {/* Play/Pause Button - Always visible and accessible */}
+        <div className="absolute top-4 right-4">
+           <button 
+            onClick={() => setIsPaused(!isPaused)}
+            className={`w-8 h-8 rounded flex items-center justify-center transition-all ${isPaused ? 'bg-blue-600 text-white' : 'bg-white/10 text-white/40 hover:bg-white/20 hover:text-white'}`}
+           >
+            {isPaused ? <Play className="w-4 h-4 ml-0.5" /> : <Pause className="w-4 h-4" />}
+           </button>
+        </div>
+
+        {/* Status indicator when controls are hidden */}
+        {!isPaused && (
+          <div className="text-[8px] uppercase tracking-[0.4em] text-blue-400 font-black py-1 flex items-center justify-between group-hover/panel:hidden animate-in fade-in duration-300">
+            <span>Simulation Active • {speed}h/s</span>
+            <span className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" /> Live Telemetry</span>
+          </div>
+        )}
+
+        {/* Controls Row - Hidden when playing unless hovered */}
+        <div className={`flex items-center gap-6 transition-all duration-500 overflow-hidden ${(!isPaused) ? 'opacity-0 max-h-0 pointer-events-none group-hover/panel:opacity-100 group-hover/panel:max-h-20 group-hover/panel:pointer-events-auto group-hover/panel:mt-4' : 'opacity-100 max-h-20 mt-4'}`}>
           <div className="flex bg-white/5 p-1 rounded border border-white/5">
             <ControlButton onClick={() => onSpeedChange(-24)} icon={<Rewind className="w-3.5 h-3.5" />} active={speed === -24} />
-            <ControlButton onClick={() => setIsPaused(!isPaused)} icon={isPaused ? <Play className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />} />
             <ControlButton onClick={() => onSpeedChange(1)} icon={<Play className="w-3.5 h-3.5" />} active={speed === 1} label="1x" />
             <ControlButton onClick={() => onSpeedChange(6)} icon={<FastForward className="w-3.5 h-3.5" />} active={speed === 6} label="6h" />
             <ControlButton onClick={() => onSpeedChange(24)} icon={<FastForward className="w-3.5 h-3.5" />} active={speed === 24} shadow label="1d" />
@@ -88,7 +105,10 @@ export default function SimulationControls({
             <div className="w-px bg-white/10 mx-1 h-6 self-center" />
             
             <button 
-              onClick={() => onTimestampChange(Date.now())}
+              onClick={() => {
+                onTimestampChange(Date.now());
+                setIsPaused(true);
+              }}
               className="px-3 py-1.5 text-[8px] uppercase tracking-[0.2em] text-white/40 hover:text-white transition-colors font-bold"
             >
               Real Time

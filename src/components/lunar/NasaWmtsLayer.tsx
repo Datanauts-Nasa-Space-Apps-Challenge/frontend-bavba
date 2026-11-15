@@ -39,8 +39,6 @@ export default function NasaWmtsLayer({ layerId, opacity = 1 }: NasaWmtsLayerPro
         const matrix = metadata.matrices[matrixIndex];
 
         if (!matrix) {
-          // Si no hay matriz en este nivel de zoom, intentamos usar el ID de zoom directamente
-          // Esto es común en algunos servicios WMTS de la NASA
           const matrixId = coords.z.toString();
           const ext = metadata.format.split('/')[1] || 'png';
           return metadata.resourceUrl
@@ -70,11 +68,6 @@ export default function NasaWmtsLayer({ layerId, opacity = 1 }: NasaWmtsLayerPro
       minZoom: layerInfo.minZoom,
       maxZoom: layerInfo.maxZoom,
       noWrap: true,
-      bounds: layerInfo.projection === 'EQ' 
-        ? L.latLngBounds([-90, -180], [90, 180])
-        : layerInfo.projection === 'NP'
-          ? L.latLngBounds([55, -180], [90, 180])
-          : L.latLngBounds([-90, -180], [-55, 180]),
       className: `nasa-layer-${layerId.toLowerCase().replace(/_/g, '-')}`,
     };
 

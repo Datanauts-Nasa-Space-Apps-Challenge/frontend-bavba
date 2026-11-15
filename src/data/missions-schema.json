@@ -1,0 +1,48 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Space Mission List",
+    "description": "Schema to validate a list of lunar missions.",
+    "type": "object",
+    "properties": {
+      "missions": {
+        "type": "array",
+        "description": "List of missions.",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "internal mission id"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Name of the mission."
+            },
+            "agency": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Responsible space agency."
+            },
+            "status": {
+              "type": "string",
+              "enum": ["planned", "completed", "partial", "failed"],
+              "description": "Status of the mission."
+            }
+          },
+          "required": [
+            "id",
+            "name",
+            "agency",
+            "status"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    "required": [
+      "missions"
+    ],
+    "additionalProperties": false
+  }

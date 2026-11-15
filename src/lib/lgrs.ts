@@ -1,214 +1,261 @@
 'use client';
 
-/**
- * LGRS (Lunar Grid Reference System) Implementation V2.1
- * USGS Standard LPS (Polar) and LTM (Transverse Mercator) Support
- */
+import {
+  lunarGridService,
+  LunarGridReference,
+  LunarGridSystem,
+} from './lunar-grid-router';
+import {
+  LTM_LATITUDE_BANDS,
+  decodeLGRSFull,
+  getLgrsCellBounds,
+  getLtmCentralMeridian,
+} from './lgrs-service';
+import {
+  POLAR_LATITUDE_THRESHOLD,
+  normalizeLongitude,
+} from './moon-projections';
 
-export const BANDS = [
-  { min: 75, max: 90, code: 'H', label: 'North Polar High' },
-  { min: 45, max: 75, code: 'K', label: 'North Mid-Lat' },
-  { min: 15, max: 45, code: 'L', label: 'North Tropical' },
-  { min: -15, max: 15, code: 'M', label: 'Equatorial' },
-  { min: -45, max: -15, code: 'N', label: 'South Tropical' },
-  { min: -75, max: -45, code: 'P', label: 'South Mid-Lat' },
-  { min: -90, max: -75, code: 'Q', label: 'South Polar High' }
-];
+export type { LunarGridReference, LunarGridSystem };
+export { lunarGridService };
 
 export interface LGRSResult {
   code: string;
+  system: LunarGridSystem;
+  gzd: string;
+  squareId: string;
   band: string;
   sector: string;
   easting: number;
   northing: number;
+  precision: number;
+}
+
+export const BANDS = Array.from(LTM_LATITUDE_BANDS).map((code, idx) => {
+  const min = -80 + idx * 8;
+  const max = min + 8;
+  return {
+    min,
+    max,
+    code,
+    label: `LTM Band ${code} (${min}° to ${max}°)`,
+  };
+});
+
+export function normalizeLng(lng: number): number {
+  return normalizeLongitude(lng);
 }
 
 /**
- * Normaliza la longitud al dominio [-180, 180] compatible con Leaflet.
+ * Precisión LGRS (en metros) asociada al nivel de zoom de la vista:
+ * - zoom < 3: 100 km (zonas/bandas)
+ * - zoom 3..4: 10 km
+ * - zoom 5..7: 1 km
+ * - zoom >= 8: 100 m
  */
-export function normalizeLng(lng: number): number {
-  let n = lng % 360;
-  if (n > 180) n -= 360;
-  if (n <= -180) n += 360;
-  return n;
+export function zoomToGridResolutionMeters(zoom: number): number {
+  if (zoom < 3) return 100_000;
+  if (zoom < 5) return 10_000;
+  if (zoom < 8) return 1_000;
+  return 100;
 }
 
-export function getLGRSCode(lat: number, lng: number): LGRSResult {
-  const nLng = ((lng % 360) + 360) % 360; // 0-360 para cálculo de sector
-  const sectorNum = Math.floor(nLng / 15) + 1;
-  const sectorStr = sectorNum.toString().padStart(2, '0');
-  
-  const bandObj = BANDS.find(b => lat >= b.min && lat <= b.max) || 
-                  (lat > 0 ? BANDS[0] : BANDS[BANDS.length - 1]);
-  
-  const sectorLngStart = (sectorNum - 1) * 15;
-  const sectorLngOffset = nLng - sectorLngStart;
-  const bandLatRange = bandObj.max - bandObj.min;
-  const latOffset = lat - bandObj.min;
-  
-  const easting = Math.floor((sectorLngOffset / 15) * 100);
-  const northing = Math.floor((latOffset / bandLatRange) * 100);
-
-  const code = `${bandObj.code}-${sectorStr}-E${easting.toString().padStart(2, '0')}-N${northing.toString().padStart(2, '0')}`;
+export function getLGRSCode(lat: number, lng: number, precisionDigits = 3): LGRSResult {
+  const ref = lunarGridService.encode(lat, lng, precisionDigits);
+  const sectorMatch = ref.gzd.match(/^(\d{2})([A-Z])$/);
 
   return {
-    code,
-    band: bandObj.code,
-    sector: sectorStr,
-    easting,
-    northing
+    code: ref.code,
+    system: ref.system,
+    gzd: ref.gzd,
+    squareId: ref.squareId,
+    band: sectorMatch ? sectorMatch[2] : ref.gzd,
+    sector: sectorMatch ? sectorMatch[1] : ref.gzd,
+    easting: Math.round(ref.easting),
+    northing: Math.round(ref.northing),
+    precision: ref.precision,
   };
 }
 
-/**
- * Parsea un código de celda estilo '15Q' o el formato completo.
- */
-export function parseLgrsCell(code: string): { 
-  latMin: number, latMax: number, lngMin: number, lngMax: number, 
-  centerLat: number, centerLng: number, band: string, sector: string 
+export function decodeLGRS(code: string): { lat: number; lng: number } | null {
+  try {
+    const { lat, lon } = lunarGridService.decode(code);
+    return { lat, lng: lon };
+  } catch {
+    return null;
+  }
+}
+
+export function parseLgrsCell(code: string): {
+  latMin: number;
+  latMax: number;
+  lngMin: number;
+  lngMax: number;
+  centerLat: number;
+  centerLng: number;
+  band: string;
+  sector: string;
+  system: LunarGridSystem;
+  gzd: string;
+  squareId: string;
+  precision: number;
+  polygon: [number, number][];
 } | null {
   try {
-    let bandCode = '';
-    let sectorNum = 0;
+    const decoded = decodeLGRSFull(code);
+    const bounds = getLgrsCellBounds(code);
+    const ring = bounds.coordinates[0];
 
-    // Caso 1: Formato corto 15Q o 15QHN
-    const shortMatch = code.match(/^(\d{1,2})([A-Z])/);
-    if (shortMatch) {
-      sectorNum = parseInt(shortMatch[1]);
-      bandCode = shortMatch[2];
-    } else {
-      // Caso 2: Formato estándar Band-Sector-...
-      const parts = code.split('-');
-      if (parts.length >= 2) {
-        bandCode = parts[0];
-        sectorNum = parseInt(parts[1]);
-      } else {
-        return null;
-      }
-    }
+    const lons = ring.map((p) => p[0]);
+    const lats = ring.map((p) => p[1]);
 
-    const band = BANDS.find(b => b.code === bandCode);
-    if (!band || sectorNum < 1 || sectorNum > 24) return null;
-
-    const lngMinRaw = (sectorNum - 1) * 15;
-    const lngMaxRaw = sectorNum * 15;
-    
-    // Normalizar para Leaflet
-    const lngMin = normalizeLng(lngMinRaw);
-    const lngMax = normalizeLng(lngMaxRaw);
-    
-    const latMin = band.min;
-    const latMax = band.max;
+    const sectorMatch = decoded.gzd.match(/^(\d{2})([A-Z])$/);
 
     return {
-      latMin,
-      latMax,
-      lngMin: Math.min(lngMin, lngMax), // Manejo de cruce de antimeridiano simplificado
-      lngMax: Math.max(lngMin, lngMax),
-      centerLat: (latMin + latMax) / 2,
-      centerLng: normalizeLng((lngMinRaw + lngMaxRaw) / 2),
-      band: bandCode,
-      sector: sectorNum.toString().padStart(2, '0')
+      latMin: Math.min(...lats),
+      latMax: Math.max(...lats),
+      lngMin: Math.min(...lons),
+      lngMax: Math.max(...lons),
+      centerLat: decoded.lat,
+      centerLng: decoded.lon,
+      band: sectorMatch ? sectorMatch[2] : decoded.gzd,
+      sector: sectorMatch ? sectorMatch[1] : decoded.gzd,
+      system: decoded.system,
+      gzd: decoded.gzd,
+      squareId: decoded.squareId,
+      precision: decoded.precision,
+      polygon: ring.map(([lon, lat]) => [lat, lon]),
     };
   } catch {
     return null;
   }
 }
 
-export function getNeighborCells(currentCode: string) {
-  const cell = parseLgrsCell(currentCode);
-  if (!cell) return {};
-
-  const sector = parseInt(cell.sector);
-  const bandIndex = BANDS.findIndex(b => b.code === cell.band);
-
-  const getCode = (s: number, bIdx: number) => {
-    const sFix = ((s - 1 + 24) % 24) + 1;
-    if (bIdx < 0 || bIdx >= BANDS.length) return null;
-    return `${sFix}${BANDS[bIdx].code}`;
-  };
-
-  return {
-    north: getCode(sector, bandIndex - 1),
-    south: getCode(sector, bandIndex + 1),
-    east: getCode(sector + 1, bandIndex),
-    west: getCode(sector - 1, bandIndex),
-  };
+/**
+ * Obtiene los datos de celdas LGRS dentro de un área delimitada.
+ * Utilizado principalmente para el renderizado de la cuadrícula en el globo 3D.
+ */
+export function getLGRSCellsInBounds(
+  bounds: { north: number; south: number; west: number; east: number },
+  digits: number,
+  limit: number = 200
+): any[] {
+  const cells: Map<string, any> = new Map();
+  
+  // Tamaño aproximado de paso basado en los dígitos de precisión
+  // 100km (digits 0) ~ 3.3 grados | 10km (digits 1) ~ 0.33 grados
+  const step = digits === 0 ? 3.0 : 0.3;
+  
+  for (let lat = bounds.south; lat <= bounds.north; lat += step) {
+    for (let lng = bounds.west; lng <= bounds.east; lng += step) {
+      if (cells.size >= limit) break;
+      
+      const res = getLGRSCode(lat, lng, digits);
+      if (!cells.has(res.code)) {
+        const cellData = parseLgrsCell(res.code);
+        if (cellData) {
+          cells.set(res.code, cellData);
+        }
+      }
+    }
+    if (cells.size >= limit) break;
+  }
+  
+  return Array.from(cells.values());
 }
 
-export function decodeLGRS(code: string): { lat: number; lng: number } | null {
+export function getNeighborCells(currentCode: string): {
+  north: string | null;
+  south: string | null;
+  east: string | null;
+  west: string | null;
+  all: string[];
+} {
   try {
-    const parts = code.split('-');
-    if (parts.length !== 4) return null;
-
-    const bandCode = parts[0];
-    const sectorNum = parseInt(parts[1]);
-    const easting = parseInt(parts[2].substring(1));
-    const northing = parseInt(parts[3].substring(1));
-
-    const band = BANDS.find(b => b.code === bandCode);
-    if (!band) return null;
-
-    const lngStart = (sectorNum - 1) * 15;
-    const lngRaw = lngStart + (easting / 100) * 15;
-    const lng = normalizeLng(lngRaw);
-    
-    const latRange = band.max - band.min;
-    const lat = band.min + (northing / 100) * latRange;
-
-    return { lat, lng };
+    const all = lunarGridService.getNeighbors(currentCode);
+    return {
+      north: all[0] ?? null,
+      east: all[2] ?? null,
+      south: all[4] ?? null,
+      west: all[6] ?? null,
+      all,
+    };
   } catch {
-    return null;
+    return { north: null, south: null, east: null, west: null, all: [] };
   }
 }
 
+/**
+ * Genera líneas de cuadrícula LGRS limpias y continuas según el nivel de detalle:
+ * - Zona LTM (-80°..+80°): bandas de 8° y zonas de 6°, subdividiéndose al acercar el zoom.
+ * - Regiones polares LPS (|lat| >= 80°): anillos concéntricos y radios polares.
+ */
 export function getLGRSGridLines(level: 1 | 2 | 3 | 4 = 1, mode: 'EQ' | 'NP' | 'SP' = 'EQ') {
-  const step = level === 1 ? 15 : level === 2 ? 5 : level === 3 ? 1 : 0.5;
-  
   if (mode === 'EQ') {
-    const lats = [];
-    for (let lat = -90; lat <= 90; lat += step) {
+    const latStep = level === 1 ? 8 : level === 2 ? 4 : level === 3 ? 2 : 1;
+    const lngStep = level === 1 ? 6 : level === 2 ? 6 : level === 3 ? 3 : 1.5;
+
+    const lats: { value: number; isMajor: boolean; isPolarBoundary?: boolean }[] = [];
+    for (let lat = -POLAR_LATITUDE_THRESHOLD; lat <= POLAR_LATITUDE_THRESHOLD; lat += latStep) {
       lats.push({
         value: lat,
-        isMajor: lat % 30 === 0 || lat === 0
+        isMajor: lat % 8 === 0 || lat === 0,
+        isPolarBoundary: Math.abs(lat) === POLAR_LATITUDE_THRESHOLD,
       });
     }
-    const lngs = [];
-    for (let lng = -180; lng < 180; lng += step) {
+
+    const lngs: { value: number; isMajor: boolean }[] = [];
+    for (let lng = -180; lng < 180; lng += lngStep) {
       lngs.push({
         value: lng,
-        isMajor: lng % 30 === 0 || lng === 0
+        isMajor: lng % 6 === 0,
       });
     }
-    return { lat: lats, lng: lngs, boundary: 0 };
+
+    return { lat: lats, lng: lngs, boundary: POLAR_LATITUDE_THRESHOLD };
   }
 
   const isNorth = mode === 'NP';
-  const latLimit = isNorth ? 55 : -55;
-  
-  const lats = [];
-  const majorLats = [80, 85, 75, 70, 65];
-  
-  for (let lat = isNorth ? 90 : -90; isNorth ? lat >= latLimit : lat <= latLimit; lat += (isNorth ? -step : step)) {
+  const latLimit = isNorth ? 60 : -60;
+  const latStep = level === 1 ? 5 : level === 2 ? 2.5 : 1;
+
+  const lats: { value: number; isMajor: boolean; isPolarBoundary?: boolean }[] = [];
+  for (
+    let lat = isNorth ? 90 : -90;
+    isNorth ? lat >= latLimit : lat <= latLimit;
+    lat += isNorth ? -latStep : latStep
+  ) {
     if (Math.abs(lat) === 90) continue;
     lats.push({
       value: lat,
-      isMajor: majorLats.includes(Math.abs(lat)) || lat % 10 === 0
+      isMajor: Math.abs(lat) === 80 || Math.abs(lat) === 82 || Math.abs(lat) % 10 === 0,
+      isPolarBoundary: Math.abs(lat) === POLAR_LATITUDE_THRESHOLD,
     });
   }
 
-  const lngs = [];
-  const lngStep = level === 1 ? 30 : level === 2 ? 15 : 10;
+  const lngStep = level === 1 ? 30 : level === 2 ? 15 : 6;
+  const lngs: { value: number; isMajor: boolean }[] = [];
   for (let lng = -180; lng < 180; lng += lngStep) {
     lngs.push({
       value: lng,
-      isMajor: lng % 30 === 0 || lng === 0
+      isMajor: lng % 30 === 0 || lng === 0,
     });
   }
 
-  return { 
-    lat: lats, 
+  return {
+    lat: lats,
     lng: lngs,
-    boundary: isNorth ? 80 : -80
+    boundary: isNorth ? POLAR_LATITUDE_THRESHOLD : -POLAR_LATITUDE_THRESHOLD,
   };
+}
+
+export function getLtmZoneLabels() {
+  return Array.from({ length: 60 }, (_, idx) => {
+    const zone = idx + 1;
+    return {
+      zone,
+      code: zone.toString().padStart(2, '0'),
+      centralMeridian: getLtmCentralMeridian(zone),
+    };
+  });
 }

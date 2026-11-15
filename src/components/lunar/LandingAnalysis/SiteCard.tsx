@@ -3,9 +3,9 @@
 
 import { EvaluationPoint } from '@/types/lunar';
 import { cn } from '@/lib/utils';
-import { X, Target, Zap, Clock, TrendingUp } from 'lucide-react';
+import { X } from 'lucide-react';
 import { getLGRSCode } from '@/lib/lgrs';
-import { LUNAR_FEATURES } from '@/data/lunar-features';
+import { MASTER_CATALOG } from '@/data/lunar-features';
 
 interface SiteCardProps {
   point: EvaluationPoint;
@@ -16,7 +16,7 @@ interface SiteCardProps {
 
 export default function SiteCard({ point, isHighlighted, onRemove, onHover }: SiteCardProps) {
   const lgrs = getLGRSCode(point.latitude, point.longitude);
-  const feature = LUNAR_FEATURES.find(f => f.id === point.siteId);
+  const feature = MASTER_CATALOG.find(f => f.id === point.siteId);
 
   return (
     <div 
@@ -35,8 +35,8 @@ export default function SiteCard({ point, isHighlighted, onRemove, onHover }: Si
       </button>
 
       <div className="mb-4 pr-8">
-        <div className="text-[8px] font-bold uppercase tracking-[0.2em] mb-1.5 flex items-center gap-2" style={{ color: point.color }}>
-          <Target className="w-2.5 h-2.5" /> Candidate ID: {point.id.slice(0, 8)}
+        <div className="text-[8px] font-bold uppercase tracking-[0.2em] mb-1.5" style={{ color: point.color }}>
+          Candidate ID: {point.id.slice(0, 8)}
         </div>
         <h4 className="text-sm font-bold text-white truncate">{point.name}</h4>
       </div>
@@ -48,8 +48,8 @@ export default function SiteCard({ point, isHighlighted, onRemove, onHover }: Si
         </div>
         
         <div className="grid grid-cols-2 gap-3">
-          <Metric label="Elev" value={`${feature?.elevation?.toLocaleString() || 0}m`} icon={<TrendingUp className="w-2.5 h-2.5" />} />
-          <Metric label="Time" value={`T+${point.timestamp}h`} icon={<Clock className="w-2.5 h-2.5" />} />
+          <Metric label="Elev" value={`${feature?.elevation?.toLocaleString() || 0}m`} />
+          <Metric label="Time" value={`T+${point.timestamp}h`} />
         </div>
 
         <div className="p-3 bg-white/[0.02] border border-white/5 rounded space-y-2">
@@ -78,11 +78,10 @@ export default function SiteCard({ point, isHighlighted, onRemove, onHover }: Si
   );
 }
 
-function Metric({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) {
+function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between p-2 bg-white/[0.03] border border-white/5 rounded">
       <div className="flex items-center gap-1.5 opacity-20">
-        {icon}
         <span className="text-[7px] font-bold tracking-widest uppercase">{label}</span>
       </div>
       <span className="font-mono text-[9px] text-white/80">{value}</span>
